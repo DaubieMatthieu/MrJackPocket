@@ -84,8 +84,8 @@ public class TilesGrid extends GridPane {
         tileMoveAnimation(tile2, col2, row2, col1, row1, Controller::playNextAction);
     }
 
-    //TODO make animation always go on top of static tiles
     public void tileMoveAnimation(AreaTile areaTile, int originCol, int originRow, int targetCol, int targetRow, Runnable callback) {
+        areaTile.toFront();
         double deltaX = getX(targetCol) - getX(originCol);
         double deltaY = getY(targetRow) - getY(originRow);
         TranslateTransition translation = new TranslateTransition(

@@ -19,11 +19,14 @@ import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 
 public interface FXHelper {
+    double defaultPadding = 2.0;
+    double defaultSpacing = 5.0;
+
     static void setDefaultVBox(VBox vBox) {
         //sets 2% padding on each side
         setDefaultPadding(vBox);
         //sets 5% width spacing between elements
-        vBox.spacingProperty().bind(vBox.prefHeightProperty().divide(20));
+        vBox.spacingProperty().bind(vBox.prefHeightProperty().multiply(defaultSpacing /100));
         vBox.setAlignment(Pos.CENTER);
     }
 
@@ -42,7 +45,7 @@ public interface FXHelper {
 
     static void setDefaultPadding(Pane pane) {
         //sets 2% padding on each side
-        setPercentagePadding(pane, 2.0, 2.0);
+        setPercentagePadding(pane, defaultPadding, defaultPadding);
     }
 
     static void setPercentagePadding(Pane pane, Double widthPercentage, Double heightPercentage) {

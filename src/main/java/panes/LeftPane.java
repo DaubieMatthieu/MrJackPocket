@@ -11,7 +11,6 @@ public class LeftPane extends VBox {
     public final AlibiDeck MrJackAlibi;
     public final TokensPane<TurnToken> turnTokens;
 
-    //TODO turnTokens is too tall when full
     LeftPane() {
         FXHelper.setDefaultVBox(this);
         MrJackAlibi = new AlibiDeck(prefWidthProperty(), prefHeightProperty());

@@ -36,7 +36,6 @@ public class Controller extends Application {
         });
         actionQueue.add(mrJack::drawIdentity);
         actionQueue.add(Controller::turn);
-        //TODO area tiles positions are not shuffled
         playNextAction();
     }
 

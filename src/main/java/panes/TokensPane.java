@@ -12,7 +12,8 @@ public class TokensPane<T extends Token> extends VBox {
 
     TokensPane(T[] tokensList) {
         FXHelper.setDefaultVBox(this);
-        double heightPercentage = (100.0 - 4 - 2 * (tokensList.length - 1)) / tokensList.length;
+        double heightPercentage = (100.0 - FXHelper.defaultPadding -
+                FXHelper.defaultSpacing * (tokensList.length - 1)) / tokensList.length;
         for (T token : tokensList) {
             token.fitHeightProperty().bind(prefHeightProperty().multiply(heightPercentage).divide(100));
             token.setPreserveRatio(true);

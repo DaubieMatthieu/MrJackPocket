@@ -5,7 +5,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import main.java.FXHelper;
 
-//TODO maybe replace title with player name
 public class TopPane extends VBox {
     TopPane() {
         FXHelper.setDefaultVBox(this);
