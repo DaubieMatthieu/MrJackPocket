@@ -16,23 +16,24 @@ import main.java.tokens.Detective;
 import java.util.*;
 
 public class Controller extends Application {
-    private static Stage primaryStage;
     private static final GamePane gui = new GamePane();
-
     private static final MrJack mrJack = new MrJack(gui.boardPane.rightPane.alibiDeck.draw());
     private static final Investigator investigator = new Investigator();
-
     private static final Deque<Runnable> actionQueue = new ArrayDeque<>();
     private static final Set<AreaTile> visibleTiles = new HashSet<>();
     private static final Set<AreaTile> invisibleTiles = new HashSet<>();
     private static final Set<ActionToken> availableActionTokens = new HashSet<>();
-
+    private static Stage primaryStage;
     private static int turnNumber = 1;
     private static Player currentPlayer;
     private static Node clickedNode;
 
     public static void startGame() {
         actionQueue.add(() -> gui.frontPane.showText("Game is starting"));
+        actionQueue.add(() -> {
+            gui.boardPane.districtPane.tilesGrid.initTilesOrientations();
+            playNextAction();
+        });
         actionQueue.add(mrJack::drawIdentity);
         actionQueue.add(Controller::turn);
         //TODO area tiles positions are not shuffled
@@ -75,13 +76,10 @@ public class Controller extends Application {
             String str = mrJack + " is" + ((mrJackIsVisible) ? "" : " not") + " in the lines of sight of the detectives";
             gui.frontPane.showText(str);
         });
-        actions.add(() -> {
-            hideSuspectsOn((mrJackIsVisible() ? invisibleTiles : visibleTiles));
-            playNextAction();
-        });
+        actions.add(() -> hideSuspectsOn((mrJackIsVisible() ? invisibleTiles : visibleTiles)));
         actions.add(() -> {
             String str = ((mrJackIsVisible) ? investigator : mrJack) + " takes the turn token";
-            if (mrJackIsVisible) {
+            if (mrJackIsVisible && currentPlayer instanceof MrJack) {
                 str += ", winning one hourglass";
                 mrJack.addHourglasses(1);
             }
@@ -125,7 +123,10 @@ public class Controller extends Application {
     }
 
     public static void hideSuspectsOn(Set<AreaTile> tiles) {
-        for (AreaTile areaTile : tiles) if (areaTile.suspectIsVisible()) areaTile.turnOver();
+        Stack<Runnable> actions = new Stack<>();
+        for (AreaTile areaTile : tiles) if (areaTile.suspectIsVisible()) actions.add(areaTile::hideSuspect);
+        setNextActions(actions);
+        playNextAction();
     }
 
     public static boolean mrJackIsVisible() {
@@ -165,26 +166,20 @@ public class Controller extends Application {
 
     private static void alibiAction() {
         Alibi alibi = gui.boardPane.rightPane.alibiDeck.draw();
-        currentPlayer.drawCard(alibi);
+        Stack<Runnable> actions = new Stack<>();
+        actions.add(() -> currentPlayer.drawCard(alibi));
         if (currentPlayer instanceof Investigator) {
             if (mrJack.getIdentity() == alibi) {
-                AreaTile[][] areaTiles = gui.boardPane.districtPane.tilesGrid.getAreaTiles();
-                for (int i = 0; i < 3; i++)
-                    for (int j = 0; j < 3; j++) {
-                        AreaTile areaTile = areaTiles[i][j];
-                        if (areaTile.getAlibi() != alibi) setNextAction(() -> {
-                            areaTile.turnOver();
-                            playNextAction();
-                        });
-                    }
+                for (AreaTile areaTile : gui.boardPane.districtPane.tilesGrid.getAreaTiles()) {
+                    if (areaTile.getAlibi() != alibi) actions.add(areaTile::hideSuspect);
+                }
             } else {
                 AreaTile areaTile = gui.boardPane.districtPane.tilesGrid.getAreaTile(alibi);
-                if (areaTile.suspectIsVisible()) setNextAction(() -> {
-                    areaTile.turnOver();
-                    playNextAction();
-                });
+                if (areaTile.suspectIsVisible()) actions.add(areaTile::hideSuspect);
             }
         }
+        setNextActions(actions);
+        playNextAction();
     }
 
     private static void exchangeAction() {
@@ -250,11 +245,8 @@ public class Controller extends Application {
             return mrJack.getHourglassesCount() >= 6;
         } else {
             int suspectsNumber = 0;
-            AreaTile[][] areaTiles = gui.boardPane.districtPane.tilesGrid.getAreaTiles();
-            for (int i = 0; i < 3; i++)
-                for (int j = 0; j < 3; j++) {
-                    if (areaTiles[i][j].suspectIsVisible()) suspectsNumber++;
-                }
+            for (AreaTile areaTile : gui.boardPane.districtPane.tilesGrid.getAreaTiles())
+                if (areaTile.suspectIsVisible()) suspectsNumber++;
             return suspectsNumber == 1;
         }
     }
@@ -264,10 +256,8 @@ public class Controller extends Application {
         setNextAction(() -> gui.setOnMouseClicked(e -> primaryStage.close()));
     }
 
-    //TODO change for a self updating list, every time a suspect turn itself,
-    // it switch itself to the appropriate list
     private static void updateVisibleTiles() {
-        AreaTile[][] areaTiles = gui.boardPane.districtPane.tilesGrid.getAreaTiles();
+        AreaTile[][] areaTiles = gui.boardPane.districtPane.tilesGrid.getAreaTilesGrid();
         visibleTiles.clear();
         invisibleTiles.clear();
         Detective[] detectivePieces = gui.boardPane.districtPane.getDetectives();
@@ -316,10 +306,9 @@ public class Controller extends Application {
         Runnable action = actionQueue.poll();
         assert action != null;
         action.run();
-        System.out.println("Calling " + action.getClass());
     }
 
-    public static void clickedNode(Node node) {
+    public static void setClickedNode(Node node) {
         clickedNode = node;
         playNextAction();
     }

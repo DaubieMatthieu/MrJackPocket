@@ -22,7 +22,7 @@ public class Detective extends ImageView {
         this.name = name;
         setImage(new Image("/detective_tokens/" + "detective_" + name + ".png"));
         setPosition(row, column);
-        setOnMouseClicked(e -> Controller.clickedNode(this));
+        setOnMouseClicked(e -> Controller.setClickedNode(this));
         FXHelper.setClickable(this, false);
     }
 

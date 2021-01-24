@@ -17,14 +17,13 @@ public abstract class Token extends ImageView {
         verso = new Image(versoFilename);
         onRecto = true;
         setImage(recto);
-        setOnMouseClicked(e -> Controller.clickedNode(this));
+        setOnMouseClicked(e -> Controller.setClickedNode(this));
         FXHelper.setClickable(this, false);
     }
 
-    //TODO add flip animation ?
     public void flip() {
         onRecto = !onRecto;
-        setImage((onRecto) ? recto : verso);
+        FXHelper.flipAnimation(this, (onRecto) ? recto : verso, Controller::playNextAction);
     }
 
     public int getTokenId() {

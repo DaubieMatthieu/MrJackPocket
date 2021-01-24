@@ -5,6 +5,7 @@ import main.java.alibis.Alibi;
 import main.java.tokens.ActionToken;
 
 import java.util.Set;
+import java.util.Stack;
 
 public class MrJack extends Player {
     private final Alibi identity;
@@ -23,7 +24,9 @@ public class MrJack extends Player {
 
     public void turnActionTokensOver(Set<ActionToken> actionTokens) {
         Controller.getGui().frontPane.showText(this + " is turning the action tokens over");
-        for (ActionToken actionToken : actionTokens) actionToken.flip();
+        Stack<Runnable> actions = new Stack<>();
+        for (ActionToken actionToken : actionTokens) actions.add(actionToken::flip);
+        Controller.setNextActions(actions);
     }
 
     public Alibi getIdentity() {

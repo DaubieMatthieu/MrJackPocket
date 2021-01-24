@@ -1,16 +1,22 @@
 package main.java;
 
+import javafx.animation.Interpolator;
+import javafx.animation.RotateTransition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.geometry.Insets;
+import javafx.geometry.Point3D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Labeled;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
+import javafx.util.Duration;
 
 public interface FXHelper {
     static void setDefaultVBox(VBox vBox) {
@@ -61,5 +67,30 @@ public interface FXHelper {
         node.setMouseTransparent(!clickable);
         String style = (clickable) ? "-fx-effect: innershadow(gaussian, #00FF00, 3, 1, 0, 0);" : null;
         node.setStyle(style);
+    }
+
+    static void flipAnimation(ImageView iv, Image nextImage) {
+        flipAnimation(iv, nextImage, Controller::playNextAction);
+    }
+
+    static void flipAnimation(ImageView iv, Image nextImage, Runnable callback) {
+        final RotateTransition rotateOutFront = new RotateTransition(Duration.millis(500), iv);
+        rotateOutFront.setInterpolator(Interpolator.LINEAR);
+        rotateOutFront.setAxis(new Point3D(1, 1, 0));
+        rotateOutFront.setFromAngle(0);
+        rotateOutFront.setToAngle(90);
+        //
+        final RotateTransition rotateInBack = new RotateTransition(Duration.millis(500), iv);
+        rotateInBack.setInterpolator(Interpolator.LINEAR);
+        rotateInBack.setAxis(new Point3D(1, 1, 0));
+        rotateInBack.setFromAngle(-90);
+        rotateInBack.setToAngle(0);
+        rotateOutFront.setOnFinished(e -> {
+            iv.setImage(nextImage);
+            rotateInBack.play();
+        });
+        rotateInBack.setOnFinished(e ->
+                callback.run());
+        rotateOutFront.play();
     }
 }

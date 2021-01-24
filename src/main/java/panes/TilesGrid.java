@@ -6,19 +6,24 @@ import javafx.scene.Node;
 import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
 import main.java.Controller;
+import main.java.RandomHelper;
 import main.java.alibis.Alibi;
 import main.java.tiles.AreaTile;
 import main.java.tiles.OuterTiles;
 
+import java.util.HashSet;
+import java.util.Set;
+
 
 public class TilesGrid extends GridPane {
+    private final Set<AreaTile> areaTiles = new HashSet<>();
 
     TilesGrid() {
-        initTiles();
+        initTilesPositions();
         setAlignment(Pos.CENTER);
     }
 
-    public void initTiles() {
+    public void initTilesPositions() {
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
                 if ((i == 0 || i == 4) ^ (j == 0 || j == 4)) {
@@ -29,27 +34,34 @@ public class TilesGrid extends GridPane {
                 }
                 if (i > 0 && i < 4 && j > 0 && j < 4) {
                     AreaTile areaTile = new AreaTile((i - 1) * 3 + j);
-                    if (j == 1) {
-                        if (i == 1) {
-                            areaTile.setOrientation(1);
-                        }
-                        if (i == 3) areaTile.setOrientation(3);
-                    }
-                    if (i == 2 && j == 3) areaTile.setOrientation(2);
                     areaTile.fitHeightProperty().bind(prefHeightProperty().divide(5));
                     areaTile.fitWidthProperty().bind(prefWidthProperty().divide(5));
+                    areaTiles.add(areaTile);
                     add(areaTile, i, j);
                 }
             }
         }
     }
 
-    public AreaTile[][] getAreaTiles() {
+    public void initTilesOrientations() {
+        for (AreaTile areaTile : areaTiles) {
+            int col = getColumnIndex(areaTile);
+            int row = getRowIndex(areaTile);
+            if (row == 1 && col == 1) areaTile.setOrientation(1);
+            else if (row == 1 && col == 3) areaTile.setOrientation(3);
+            else if (row == 3 && col == 2) areaTile.setOrientation(2);
+            else areaTile.setOrientation(RandomHelper.randomInt(0, 3));
+        }
+    }
+
+    public AreaTile[][] getAreaTilesGrid() {
         AreaTile[][] areaTiles = new AreaTile[3][3];
-        for (Node node : getChildren())
-            if (node instanceof AreaTile) {
-                areaTiles[getColumnIndex(node) - 1][getRowIndex(node) - 1] = (AreaTile) node;
-            }
+        for (AreaTile areaTile : this.areaTiles)
+            areaTiles[getColumnIndex(areaTile) - 1][getRowIndex(areaTile) - 1] = areaTile;
+        return areaTiles;
+    }
+
+    public Set<AreaTile> getAreaTiles() {
         return areaTiles;
     }
 
